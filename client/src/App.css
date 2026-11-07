@@ -1246,3 +1246,206 @@ button:focus-visible {
     font-size: 7px;
   }
 }
+
+/* =========================================
+   ASTRA - HEALTH RECORDS PAGE
+========================================= */
+
+.health-records-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.health-form-panel,
+.records-history-panel {
+  padding: 26px;
+}
+
+.health-record-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-top: 22px;
+}
+
+.health-record-form .form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.health-record-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  color: #cbd7e8;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.health-record-form input,
+.health-record-form select,
+.health-record-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #293b55;
+  border-radius: 9px;
+  outline: none;
+  background: #0b1525;
+  color: #f1f5f9;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.health-record-form input:focus,
+.health-record-form select:focus,
+.health-record-form textarea:focus {
+  border-color: #39b9ff;
+  box-shadow: 0 0 0 3px rgba(57, 185, 255, 0.12);
+}
+
+.health-record-form input::placeholder,
+.health-record-form textarea::placeholder {
+  color: #718096;
+}
+
+.health-record-form select {
+  cursor: pointer;
+}
+
+.health-record-form .symptoms-field {
+  width: 100%;
+}
+
+.health-record-form textarea {
+  resize: vertical;
+  min-height: 95px;
+}
+
+.health-record-form .primary-button {
+  align-self: flex-start;
+  cursor: pointer;
+}
+
+.health-record-form .primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-error {
+  color: #ff8585;
+  font-size: 13px;
+  margin: 0;
+}
+
+.form-success {
+  color: #55d6a0;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Recorded observations */
+
+.records-history-panel .panel-heading {
+  margin-bottom: 20px;
+}
+
+.records-history-panel .panel-heading > strong {
+  color: #39b9ff;
+  font-size: 14px;
+}
+
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.record-item {
+  padding: 18px;
+  border: 1px solid #263b55;
+  border-radius: 11px;
+  background: #0b1525;
+}
+
+.record-item-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.record-item-heading strong {
+  color: #f1f5f9;
+  font-size: 15px;
+}
+
+.record-item-heading span {
+  color: #8da2bd;
+  font-size: 12px;
+}
+
+.record-values {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.record-values span {
+  padding: 8px 11px;
+  border: 1px solid #293b55;
+  border-radius: 7px;
+  background: #111d30;
+  color: #cbd7e8;
+  font-size: 12px;
+}
+
+.record-symptoms {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid #263247;
+  color: #a8b7ca;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.record-safety-note {
+  color: #8da2bd;
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 0 5px;
+}
+
+/* Responsive layout */
+
+@media (max-width: 900px) {
+  .health-record-form .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .health-form-panel,
+  .records-history-panel {
+    padding: 17px;
+  }
+
+  .health-record-form .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .record-item {
+    padding: 14px;
+  }
+
+  .record-item-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -1,5 +1,6 @@
-
+import { checkBackend } from './services/healthApi'
 import { useState } from 'react'
+import HealthRecords from './components/HealthRecords'
 import {
   Activity,
   HeartPulse,
@@ -106,9 +107,21 @@ function MetricCard({
 function App() {
   const [activePage, setActivePage] = useState('Dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [backendStatus, setBackendStatus] = useState('Checking...')
+
+useState(() => {
+  checkBackend()
+    .then(() => setBackendStatus('Connected'))
+    .catch(() => setBackendStatus('Disconnected'))
+})
+
 
   const renderContent = () => {
-    if (activePage !== 'Dashboard') {
+  if (activePage === 'Health Records') {
+    return <HealthRecords />
+  }
+
+  if (activePage !== 'Dashboard') {
       const selected = navItems.find((item) => item.name === activePage)
 
       return (
