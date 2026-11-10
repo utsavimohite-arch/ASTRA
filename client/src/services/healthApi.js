@@ -33,7 +33,24 @@ export function saveHealthRecord(record) {
   });
 }
 
-// Retrieve all saved health records
-export function getHealthRecords() {
-  return apiRequest("/records");
+// Retrieve health records with search and date filters
+export function getHealthRecords(search = "", fromDate = "", toDate = "") {
+  const params = new URLSearchParams();
+
+  if (search) params.append("search", search);
+  if (fromDate) params.append("fromDate", fromDate);
+  if (toDate) params.append("toDate", toDate);
+
+  const query = params.toString()
+    ? `?${params.toString()}`
+    : "";
+
+  return apiRequest(`/records${query}`);
+}
+
+// Delete a health record
+export function deleteHealthRecord(id) {
+  return apiRequest(`/records/${id}`, {
+    method: "DELETE",
+  });
 }

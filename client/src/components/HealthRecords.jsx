@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import {
   getHealthRecords,
   saveHealthRecord,
+  deleteHealthRecord,
 } from '../services/healthApi'
 
 function HealthRecords() {
@@ -20,17 +21,31 @@ function HealthRecords() {
 
   const [form, setForm] = useState(initialForm)
   const [records, setRecords] = useState([])
+  const [search, setSearch] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  async function loadRecords() {
+  // Load health records with search and date filters
+  async function loadRecords(
+    searchTerm = search,
+    startDate = fromDate,
+    endDate = toDate
+  ) {
     try {
       setLoading(true)
       setError('')
 
-      const data = await getHealthRecords()
+      const data = await getHealthRecords(
+        searchTerm,
+        startDate,
+        endDate
+      )
+
       setRecords(data.records || [])
     } catch (err) {
       setError(err.message || 'Unable to load health records.')
@@ -39,10 +54,12 @@ function HealthRecords() {
     }
   }
 
+  // Load records when the page opens
   useEffect(() => {
-    loadRecords()
+    loadRecords('', '', '')
   }, [])
 
+  // Handle form changes
   function handleChange(event) {
     const { name, value } = event.target
 
@@ -52,6 +69,7 @@ function HealthRecords() {
     }))
   }
 
+  // Save a new health record
   async function handleSubmit(event) {
     event.preventDefault()
 
@@ -78,7 +96,12 @@ function HealthRecords() {
       setSuccess('Health record saved successfully!')
       setForm(initialForm)
 
-      await loadRecords()
+      // Clear filters and refresh all records after saving
+      setSearch('')
+      setFromDate('')
+      setToDate('')
+
+      await loadRecords('', '', '')
     } catch (err) {
       setError(err.message || 'Unable to save health record.')
     } finally {
@@ -86,6 +109,54 @@ function HealthRecords() {
     }
   }
 
+  // Apply search and date filters
+  async function handleApplyFilters(event) {
+    event.preventDefault()
+
+    if (fromDate && toDate && fromDate > toDate) {
+      setError('From date cannot be later than To date.')
+      return
+    }
+
+    await loadRecords(search, fromDate, toDate)
+  }
+
+  // Clear search and date filters
+  async function handleClearFilters() {
+    setSearch('')
+    setFromDate('')
+    setToDate('')
+
+    await loadRecords('', '', '')
+  }
+
+  // Delete a health record after confirmation
+  async function handleDelete(record) {
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete Health Record #${record.id}?`
+    )
+
+    if (!confirmed) return
+
+    try {
+      setDeletingId(record.id)
+      setError('')
+      setSuccess('')
+
+      await deleteHealthRecord(record.id)
+
+      setSuccess(`Health Record #${record.id} deleted successfully!`)
+
+      // Refresh records using the currently selected filters
+      await loadRecords(search, fromDate, toDate)
+    } catch (err) {
+      setError(err.message || 'Unable to delete health record.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  // Format record date
   function formatDate(dateValue) {
     if (!dateValue) return 'Date unavailable'
 
@@ -112,6 +183,7 @@ function HealthRecords() {
         </div>
       </section>
 
+      {/* New Health Record Form */}
       <section className="panel health-form-panel">
         <div className="panel-heading">
           <div>
@@ -121,21 +193,25 @@ function HealthRecords() {
         </div>
 
         <form
-  onSubmit={handleSubmit}
-  onKeyDown={(event) => {
-    if (event.key === 'Enter' && event.target.tagName !== 'TEXTAREA') {
-      event.preventDefault()
-    }
-  }}
-  className="health-record-form"
->
+          onSubmit={handleSubmit}
+          onKeyDown={(event) => {
+            if (
+              event.key === 'Enter' &&
+              event.target.tagName !== 'TEXTAREA'
+            ) {
+              event.preventDefault()
+            }
+          }}
+          className="health-record-form"
+        >
           <div className="form-grid">
             <label>
               Heart rate (bpm) *
               <input
                 type="number"
                 name="heart_rate"
-                min="0"
+                min="1"
+                max="300"
                 step="any"
                 value={form.heart_rate}
                 onChange={handleChange}
@@ -148,7 +224,8 @@ function HealthRecords() {
               <input
                 type="number"
                 name="systolic_bp"
-                min="0"
+                min="1"
+                max="300"
                 step="any"
                 value={form.systolic_bp}
                 onChange={handleChange}
@@ -161,7 +238,8 @@ function HealthRecords() {
               <input
                 type="number"
                 name="diastolic_bp"
-                min="0"
+                min="1"
+                max="300"
                 step="any"
                 value={form.diastolic_bp}
                 onChange={handleChange}
@@ -174,7 +252,8 @@ function HealthRecords() {
               <input
                 type="number"
                 name="body_temperature"
-                min="0"
+                min="25"
+                max="45"
                 step="any"
                 value={form.body_temperature}
                 onChange={handleChange}
@@ -187,7 +266,8 @@ function HealthRecords() {
               <input
                 type="number"
                 name="glucose"
-                min="0"
+                min="1"
+                max="1000"
                 step="any"
                 value={form.glucose}
                 onChange={handleChange}
@@ -200,6 +280,7 @@ function HealthRecords() {
                 type="number"
                 name="sleep_hours"
                 min="0"
+                max="24"
                 step="any"
                 value={form.sleep_hours}
                 onChange={handleChange}
@@ -240,6 +321,7 @@ function HealthRecords() {
             <textarea
               name="symptoms"
               rows="3"
+              maxLength="1000"
               value={form.symptoms}
               onChange={handleChange}
               placeholder="Describe any symptoms or observations..."
@@ -259,19 +341,72 @@ function HealthRecords() {
         </form>
       </section>
 
+      {/* Recorded Health Records */}
       <section className="panel records-history-panel">
         <div className="panel-heading">
           <div>
             <h2>Recorded observations</h2>
             <p>Previously saved health records</p>
           </div>
+
           <strong>{records.length} records</strong>
         </div>
 
+        {/* Search and Date Filters */}
+        <form
+          className="records-search"
+          onSubmit={handleApplyFilters}
+        >
+          <input
+            type="text"
+            placeholder="Search by ID, heart rate, mood, symptoms..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+
+          <label>
+            From date
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(event) => setFromDate(event.target.value)}
+            />
+          </label>
+
+          <label>
+            To date
+            <input
+              type="date"
+              value={toDate}
+              onChange={(event) => setToDate(event.target.value)}
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="primary-button"
+            disabled={loading}
+          >
+            {loading ? 'Applying...' : 'Apply Filters'}
+          </button>
+
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={handleClearFilters}
+            disabled={loading}
+          >
+            Clear Filters
+          </button>
+        </form>
+
+        {/* Loading and Empty States */}
         {loading ? (
           <p>Loading health records...</p>
+        ) : error ? (
+          <p className="form-error">{error}</p>
         ) : records.length === 0 ? (
-          <p>No health records have been saved yet.</p>
+          <p>No matching health records found.</p>
         ) : (
           <div className="records-list">
             {records.map((record) => (
@@ -283,10 +418,12 @@ function HealthRecords() {
 
                 <div className="record-values">
                   <span>Heart rate: {record.heart_rate} bpm</span>
+
                   <span>
                     Blood pressure: {record.systolic_bp}/
                     {record.diastolic_bp} mmHg
                   </span>
+
                   <span>
                     Temperature: {record.body_temperature} °C
                   </span>
@@ -299,7 +436,9 @@ function HealthRecords() {
                     <span>Sleep: {record.sleep_hours} hours</span>
                   )}
 
-                  {record.mood && <span>Mood: {record.mood}</span>}
+                  {record.mood && (
+                    <span>Mood: {record.mood}</span>
+                  )}
 
                   {record.stress_level != null && (
                     <span>Stress: {record.stress_level}/10</span>
@@ -311,6 +450,15 @@ function HealthRecords() {
                     Observations: {record.symptoms}
                   </p>
                 )}
+
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => handleDelete(record)}
+                  disabled={deletingId !== null || loading}
+                >
+                  {deletingId === record.id ? 'Deleting...' : 'Delete Record'}
+                </button>
               </article>
             ))}
           </div>
