@@ -1,5 +1,9 @@
-import { checkBackend } from './services/healthApi'
-import { useState } from 'react'
+import {
+  checkBackend,
+  getHealthBaseline,
+  getLatestAssessment,
+} from './services/healthApi'
+import { useEffect, useState } from 'react'
 import HealthRecords from './components/HealthRecords'
 import {
   Activity,
@@ -108,7 +112,48 @@ function App() {
   const [activePage, setActivePage] = useState('Dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [backendStatus, setBackendStatus] = useState('Checking...')
+  const [baselineData, setBaselineData] = useState(null)
+const [assessmentData, setAssessmentData] = useState(null)
+const [assessmentLoading, setAssessmentLoading] = useState(false)
+const [assessmentError, setAssessmentError] = useState('')
+useEffect(() => {
+  if (activePage !== 'Health Analysis') return
 
+  let cancelled = false
+
+  async function loadAssessment() {
+    setAssessmentLoading(true)
+    setAssessmentError('')
+
+    try {
+      const [baselineResult, assessmentResult] = await Promise.all([
+        getHealthBaseline(),
+        getLatestAssessment(),
+      ])
+
+      if (!cancelled) {
+        setBaselineData(baselineResult.baseline)
+        setAssessmentData(assessmentResult)
+      }
+    } catch (error) {
+      if (!cancelled) {
+        setAssessmentError(
+          error.message || 'Unable to load health assessment.'
+        )
+      }
+    } finally {
+      if (!cancelled) {
+        setAssessmentLoading(false)
+      }
+    }
+  }
+
+  loadAssessment()
+
+  return () => {
+    cancelled = true
+  }
+}, [activePage])
 useState(() => {
   checkBackend()
     .then(() => setBackendStatus('Connected'))
@@ -120,6 +165,182 @@ useState(() => {
   if (activePage === 'Health Records') {
     return <HealthRecords />
   }
+
+if (activePage === 'Health Analysis') {
+  const metrics = assessmentData?.assessment?.metrics || []
+
+  const baselineMetrics = [
+    { label: 'Heart Rate', value: baselineData?.heartRate, unit: 'bpm' },
+    { label: 'Systolic BP', value: baselineData?.systolicBP, unit: 'mmHg' },
+    { label: 'Diastolic BP', value: baselineData?.diastolicBP, unit: 'mmHg' },
+    { label: 'Body Temperature', value: baselineData?.bodyTemperature, unit: '°C' },
+    { label: 'Sleep Duration', value: baselineData?.sleepHours, unit: 'hours' },
+    { label: 'Stress Level', value: baselineData?.stressLevel, unit: '/10' },
+    { label: 'Glucose', value: baselineData?.glucose, unit: 'mg/dL' },
+  ]
+
+  const statusLabel = (status) => {
+    const labels = {
+      notable_change: 'Notable change',
+      close_to_reference: 'Close to reference',
+      insufficient_data: 'Insufficient data',
+    }
+
+    return labels[status] || status
+  }
+
+  return (
+    <div className="health-analysis-page">
+
+      {assessmentLoading && (
+        <div className="analysis-loading">
+          Loading your health analysis...
+        </div>
+      )}
+
+      {assessmentError && (
+        <div className="analysis-error">
+          {assessmentError}
+        </div>
+      )}
+
+      {!assessmentLoading && !assessmentError && assessmentData && (
+        <>
+          <div className="analysis-summary">
+            <h2>Personal Health Assessment</h2>
+
+            <p>
+              {assessmentData.message}
+            </p>
+
+            <div className="analysis-meta">
+              <span>
+                Records available: {baselineData?.sampleCount ?? 0}
+              </span>
+
+              <span>
+                Baseline: {
+                  baselineData?.isReliable
+                    ? 'Available'
+                    : 'Insufficient records'
+                }
+              </span>
+
+              <span>
+                Assessment: {
+                  assessmentData.status === 'review_suggested'
+                    ? 'Review suggested'
+                    : assessmentData.status === 'no_notable_change'
+                      ? 'No notable changes'
+                      : assessmentData.status === 'no_records'
+                        ? 'No records'
+                        : 'Insufficient data'
+                }
+              </span>
+            </div>
+          </div>
+
+          {assessmentData.status === 'no_records' ? (
+            <div className="analysis-message">
+              No health records are available yet. Add health observations
+              in the Health Records section to begin your analysis.
+            </div>
+          ) : (
+            <>
+              <section className="panel">
+                <div className="panel-heading">
+                  <h3>Personal Health Baseline</h3>
+                </div>
+
+                <div className="baseline-grid">
+                  {baselineMetrics.map((metric) => (
+                    <div className="baseline-card" key={metric.label}>
+                      <span>{metric.label}</span>
+
+                      <strong>
+                        {metric.value ?? '--'}
+                      </strong>
+
+                      <small>{metric.unit}</small>
+                    </div>
+                  ))}
+                </div>
+
+                {!baselineData?.isReliable && (
+                  <div className="analysis-message">
+                    {baselineData?.message}
+                  </div>
+                )}
+              </section>
+
+              <section className="panel">
+                <div className="panel-heading">
+                  <h3>Latest Measurement Comparison</h3>
+                </div>
+
+                {metrics.length > 0 ? (
+                  <div className="assessment-list">
+                    {metrics.map((metric) => (
+                      <div className="assessment-item" key={metric.label}>
+                        <div>
+                          <strong>{metric.label}</strong>
+                          <p>{metric.message}</p>
+                          <span className="assessment-status">
+                            {statusLabel(metric.status)}
+                          </span>
+                        </div>
+
+                        <div className="assessment-values">
+                          {metric.latestValue ?? '--'} {metric.unit || ''}
+                          <br />
+                          Baseline: {metric.baselineValue ?? '--'} {metric.unit || ''}
+                          <br />
+                          Difference: {metric.difference ?? '--'} {metric.unit || ''}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="analysis-message">
+                    {assessmentData.message}
+                    {' '}More health records are needed before measurements
+                    can be compared.
+                  </div>
+                )}
+              </section>
+
+              <section className="analysis-observations">
+                <h3>Additional Observations</h3>
+
+                <p>
+                  **Mood:** {assessmentData.latestRecord?.mood || 'Not recorded'}
+                </p>
+
+                <p>
+                  **Symptoms:** {assessmentData.latestRecord?.symptoms || 'None recorded'}
+                </p>
+
+                <p>
+                  **Latest record:** {assessmentData.latestRecord?.recorded_at || 'Unavailable'}
+                </p>
+              </section>
+            </>
+          )}
+
+          <div className="analysis-message">
+            <strong>Important disclaimer</strong>
+            <br />
+            This is an experimental software demonstration using illustrative
+            comparison rules. It is not a medical diagnosis, clinically
+            validated assessment, or substitute for professional medical
+            advice. Review concerning observations with qualified medical
+            personnel and follow applicable mission medical protocols.
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
   if (activePage !== 'Dashboard') {
       const selected = navItems.find((item) => item.name === activePage)

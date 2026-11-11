@@ -1,4 +1,4 @@
-
+const assessmentRoutes = require("./routes/assessmentRoutes");
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -31,7 +31,7 @@ app.get("/api/health", (req, res) => {
 
 // Health records routes
 app.use("/api/records", recordRoutes);
-
+app.use("/api/assessment", assessmentRoutes);
 // Start server
 app.listen(PORT, () => {
   console.log(`ASTRA backend running at http://localhost:${PORT}`);

@@ -54,3 +54,13 @@ export function deleteHealthRecord(id) {
     method: "DELETE",
   });
 }
+
+// Fetch the personal health baseline
+export function getHealthBaseline() {
+  return apiRequest("/assessment/baseline");
+}
+
+// Fetch the latest health assessment
+export function getLatestAssessment() {
+  return apiRequest("/assessment/latest");
+}
