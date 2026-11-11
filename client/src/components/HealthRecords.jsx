@@ -1,4 +1,4 @@
-
+import HealthTrends from './HealthTrends'
 import { useEffect, useState } from 'react'
 import {
   getHealthRecords,
@@ -340,7 +340,8 @@ function HealthRecords() {
           </button>
         </form>
       </section>
-
+{/* Health Trends Charts */}
+<HealthTrends records={records} />
       {/* Recorded Health Records */}
       <section className="panel records-history-panel">
         <div className="panel-heading">

@@ -1506,3 +1506,52 @@ button:focus-visible {
     flex-basis: 100%;
   }
 }
+/* =================================
+   HEALTH TRENDS CHARTS
+================================= */
+
+.health-trends-panel {
+  margin-top: 24px;
+}
+
+.health-trends-panel .panel-heading {
+  margin-bottom: 24px;
+}
+
+.health-trends-panel .panel-heading p {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.health-chart {
+  margin-top: 28px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.health-chart h3 {
+  margin-bottom: 18px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.health-chart .recharts-cartesian-axis-tick-value {
+  fill: #94a3b8;
+  font-size: 11px;
+}
+
+.health-chart .recharts-legend-item-text {
+  color: #cbd5e1 !important;
+  font-size: 12px;
+}
+
+.record-safety-note {
+  margin-top: 24px;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.6;
+}
