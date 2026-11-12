@@ -1750,3 +1750,142 @@ button:focus-visible {
     text-align: left;
   }
 }
+
+/* Mission Simulation */
+
+.simulation-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+}
+
+.simulation-page .page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.simulation-page .page-heading h2 {
+  margin: 0 0 8px;
+}
+
+.simulation-page .page-heading p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.simulation-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 22px 0;
+}
+
+.simulation-page .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.simulation-page .form-group label {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.simulation-page .form-group select,
+.simulation-page .form-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 9px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.simulation-page .form-group select:focus,
+.simulation-page .form-group input:focus {
+  border-color: var(--accent);
+}
+
+.simulation-page .primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.simulation-page .primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.simulation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.simulation-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  min-width: 0;
+}
+
+.simulation-card span {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.simulation-card strong {
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.simulation-disclaimer {
+  padding: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+}
+
+.simulation-disclaimer strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.simulation-disclaimer p {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.simulation-timestamp {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .simulation-form {
+    grid-template-columns: 1fr;
+  }
+
+  .simulation-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .simulation-grid {
+    grid-template-columns: 1fr;
+  }
+}

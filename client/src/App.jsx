@@ -6,6 +6,7 @@ import {
    getAlertHistory,
 } from './services/healthApi'
 import { useEffect, useState } from 'react'
+import MissionSimulation from './components/MissionSimulation'
 import HealthRecords from './components/HealthRecords'
 import {
   Activity,
@@ -67,6 +68,7 @@ const navItems = [
   { name: 'Health Analysis', icon: ChartNoAxesCombined },
   { name: 'Health Alerts', icon: Bell },
   { name: 'Mission Profile', icon: Satellite },
+  { name: 'Mission Simulation', icon: Satellite },
 ]
 
 function MetricCard({
@@ -605,7 +607,9 @@ if (activePage === 'Health Alerts') {
   )
 }
 
-
+if (activePage === 'Mission Simulation') {
+  return <MissionSimulation />
+}
   if (activePage !== 'Dashboard') {
       const selected = navItems.find((item) => item.name === activePage)
 

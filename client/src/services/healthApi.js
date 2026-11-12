@@ -73,3 +73,17 @@ export function getHealthAlerts() {
 export function getAlertHistory() {
   return apiRequest("/alerts/history");
 }
+
+// Mission simulation APIs
+export function getSimulationScenarios() {
+  return apiRequest("/simulation/scenarios");
+}
+
+export function runMissionSimulation(scenario = "normal", missionDay = 1) {
+  const params = new URLSearchParams({
+    scenario,
+    missionDay: String(missionDay),
+  });
+
+  return apiRequest(`/simulation/run?${params.toString()}`);
+}
