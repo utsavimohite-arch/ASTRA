@@ -8,6 +8,7 @@ import {
 import { useEffect, useState } from 'react'
 import MissionSimulation from './components/MissionSimulation'
 import HealthRecords from './components/HealthRecords'
+import NASAResearch from './components/NASAResearch'
 import {
   Activity,
   HeartPulse,
@@ -38,6 +39,7 @@ import {
   Sparkles,
   AlertTriangle,
   CheckCircle2,
+   BookOpen,
 } from 'lucide-react'
 
 import {
@@ -69,8 +71,8 @@ const navItems = [
   { name: 'Health Alerts', icon: Bell },
   { name: 'Mission Profile', icon: Satellite },
   { name: 'Mission Simulation', icon: Satellite },
+  { name: 'NASA Research', icon: BookOpen },
 ]
-
 function MetricCard({
   title,
   value,
@@ -609,6 +611,9 @@ if (activePage === 'Health Alerts') {
 
 if (activePage === 'Mission Simulation') {
   return <MissionSimulation />
+}
+if (activePage === 'NASA Research') {
+  return <NASAResearch />
 }
   if (activePage !== 'Dashboard') {
       const selected = navItems.find((item) => item.name === activePage)
