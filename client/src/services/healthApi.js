@@ -64,3 +64,12 @@ export function getHealthBaseline() {
 export function getLatestAssessment() {
   return apiRequest("/assessment/latest");
 }
+
+// Fetch health alerts and recommended actions
+export function getHealthAlerts() {
+  return apiRequest("/alerts");
+}
+// Fetch previously saved health alert history
+export function getAlertHistory() {
+  return apiRequest("/alerts/history");
+}

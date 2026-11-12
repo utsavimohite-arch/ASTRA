@@ -23,6 +23,23 @@ db.exec(`
   );
 `);
 
+// Create the alert history table
+db.exec(`
+  CREATE TABLE IF NOT EXISTS alert_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    metric TEXT NOT NULL,
+    latest_value REAL,
+    baseline_value REAL,
+    difference REAL,
+    unit TEXT,
+    category TEXT,
+    message TEXT,
+    recommended_actions TEXT,
+    recorded_at TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
 console.log("ASTRA SQLite database connected successfully!");
 
 module.exports = db;

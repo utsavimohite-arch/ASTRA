@@ -2,6 +2,8 @@ import {
   checkBackend,
   getHealthBaseline,
   getLatestAssessment,
+  getHealthAlerts,
+   getAlertHistory,
 } from './services/healthApi'
 import { useEffect, useState } from 'react'
 import HealthRecords from './components/HealthRecords'
@@ -63,6 +65,7 @@ const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard },
   { name: 'Health Records', icon: ClipboardList },
   { name: 'Health Analysis', icon: ChartNoAxesCombined },
+  { name: 'Health Alerts', icon: Bell },
   { name: 'Mission Profile', icon: Satellite },
 ]
 
@@ -116,6 +119,12 @@ function App() {
 const [assessmentData, setAssessmentData] = useState(null)
 const [assessmentLoading, setAssessmentLoading] = useState(false)
 const [assessmentError, setAssessmentError] = useState('')
+const [alertsData, setAlertsData] = useState(null)
+const [alertsLoading, setAlertsLoading] = useState(false)
+const [alertsError, setAlertsError] = useState('')
+const [alertHistory, setAlertHistory] = useState([])
+const [historyLoading, setHistoryLoading] = useState(false)
+const [historyError, setHistoryError] = useState('')
 useEffect(() => {
   if (activePage !== 'Health Analysis') return
 
@@ -154,11 +163,86 @@ useEffect(() => {
     cancelled = true
   }
 }, [activePage])
-useState(() => {
+
+useEffect(() => {
+  if (activePage !== 'Health Alerts') return
+
+  let cancelled = false
+
+  async function loadAlerts() {
+    setAlertsLoading(true)
+    setAlertsError('')
+
+    try {
+      const result = await getHealthAlerts()
+
+      if (!cancelled) {
+        setAlertsData(result)
+      }
+    } catch (error) {
+      if (!cancelled) {
+        setAlertsError(
+          error.message || 'Unable to load health alerts.'
+        )
+      }
+    } finally {
+      if (!cancelled) {
+        setAlertsLoading(false)
+      }
+    }
+  }
+
+  loadAlerts()
+
+  return () => {
+    cancelled = true
+  }
+}, [activePage])
+
+
+
+
+// NEW: Load saved alert history
+useEffect(() => {
+  if (activePage !== 'Health Alerts') return
+
+  let cancelled = false
+
+  async function loadAlertHistory() {
+    setHistoryLoading(true)
+    setHistoryError('')
+
+    try {
+      const result = await getAlertHistory()
+
+      if (!cancelled) {
+        setAlertHistory(result.history || [])
+      }
+    } catch (error) {
+      if (!cancelled) {
+        setHistoryError(
+          error.message || 'Unable to load alert history.'
+        )
+      }
+    } finally {
+      if (!cancelled) {
+        setHistoryLoading(false)
+      }
+    }
+  }
+
+  loadAlertHistory()
+
+  return () => {
+    cancelled = true
+  }
+}, [activePage])
+
+useEffect(() => {
   checkBackend()
     .then(() => setBackendStatus('Connected'))
     .catch(() => setBackendStatus('Disconnected'))
-})
+}, [])
 
 
   const renderContent = () => {
@@ -341,6 +425,186 @@ if (activePage === 'Health Analysis') {
     </div>
   )
 }
+
+if (activePage === 'Health Alerts') {
+  const alerts = alertsData?.alerts || []
+
+  return (
+    <div className="health-analysis-page">
+      <div className="analysis-summary">
+        <h2>Health Alerts & Guidance</h2>
+        <p>
+          Review observations that differ noticeably from your
+          personal health baseline.
+        </p>
+
+        <div className="analysis-meta">
+          <span>Alerts generated: {alertsData?.alertCount ?? 0}</span>
+          <span>
+            Status: {
+              alertsData?.status === 'review_suggested'
+                ? 'Review suggested'
+                : alertsData?.status === 'no_notable_changes'
+                  ? 'No notable changes'
+                  : 'Awaiting assessment'
+            }
+          </span>
+        </div>
+      </div>
+
+      {alertsLoading && (
+        <div className="analysis-loading">
+          Loading health alerts...
+        </div>
+      )}
+
+      {alertsError && (
+        <div className="analysis-error">
+          {alertsError}
+        </div>
+      )}
+
+      {!alertsLoading && !alertsError && alertsData && (
+        <>
+          {alerts.length === 0 ? (
+            <div className="analysis-message">
+              {alertsData.message}
+            </div>
+          ) : (
+            <section className="panel">
+              <div className="panel-heading">
+                <h3>Observations requiring review</h3>
+              </div>
+
+              <div className="assessment-list">
+                {alerts.map((alert, index) => (
+                  <div className="assessment-item" key={`${alert.metric}-${index}`}>
+                    <div>
+                      <strong>
+                        <AlertTriangle
+                          size={16}
+                          style={{ display: 'inline', marginRight: '8px' }}
+                        />
+                        {alert.metric}
+                      </strong>
+
+                      <p>{alert.message}</p>
+
+                      <span className="assessment-status">
+                        {alert.category}
+                      </span>
+
+                      <div className="analysis-observations">
+                        <strong>Recommended actions</strong>
+
+                        <ul>
+                          {alert.recommendedActions.map((action, actionIndex) => (
+                            <li key={actionIndex}>{action}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="assessment-values">
+                      Latest: {alert.latestValue} {alert.unit}
+                      <br />
+                      Baseline: {alert.baselineValue} {alert.unit}
+                      <br />
+                      Difference: {alert.difference} {alert.unit}
+                      <br />
+                      <small>{alert.recordedAt}</small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          
+          <div className="analysis-message">
+            <strong>Important disclaimer</strong>
+            <br />
+            These alerts use illustrative software comparison rules.
+            They are not clinically validated severity classifications,
+            medical diagnoses, or emergency detection. Follow approved
+            mission medical protocols and consult qualified medical personnel.
+          </div>
+        </>
+      )}
+
+      {/* Saved Alert History */}
+      {historyLoading && (
+        <div className="analysis-loading">
+          Loading alert history...
+        </div>
+      )}
+
+      {historyError && (
+        <div className="analysis-error">
+          {historyError}
+        </div>
+      )}
+
+      {!historyLoading && !historyError && (
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h3>Alert History</h3>
+              <p>Previously generated and saved observations</p>
+            </div>
+            <Clock3 size={19} />
+          </div>
+
+          {alertHistory.length === 0 ? (
+            <div className="analysis-message">
+              No saved alert history is available yet.
+            </div>
+          ) : (
+            <div className="assessment-list">
+              {alertHistory.map((alert) => (
+                <div className="assessment-item" key={alert.id}>
+                  <div>
+                    <strong>{alert.metric}</strong>
+                    <p>{alert.message}</p>
+
+                    <span className="assessment-status">
+                      {alert.category}
+                    </span>
+
+                    <div className="analysis-observations">
+                      <strong>Recommended actions</strong>
+                      <ul>
+                        {(alert.recommended_actions || []).map(
+                          (action, index) => (
+                            <li key={index}>{action}</li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="assessment-values">
+                    Latest: {alert.latest_value} {alert.unit}
+                    <br />
+                    Baseline: {alert.baseline_value} {alert.unit}
+                    <br />
+                    Difference: {alert.difference} {alert.unit}
+                    <br />
+                    <small>Recorded: {alert.recorded_at}</small>
+                    <br />
+                    <small>Saved: {alert.created_at}</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+    </div>
+  )
+}
+
 
   if (activePage !== 'Dashboard') {
       const selected = navItems.find((item) => item.name === activePage)
