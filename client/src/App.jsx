@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import MissionSimulation from './components/MissionSimulation'
 import HealthRecords from './components/HealthRecords'
 import NASAResearch from './components/NASAResearch'
+import MissionProfile from './components/MissionProfile'
 import {
   Activity,
   HeartPulse,
@@ -608,7 +609,9 @@ if (activePage === 'Health Alerts') {
     </div>
   )
 }
-
+if (activePage === 'Mission Profile') {
+  return <MissionProfile />
+}
 if (activePage === 'Mission Simulation') {
   return <MissionSimulation />
 }
@@ -616,7 +619,8 @@ if (activePage === 'NASA Research') {
   return <NASAResearch />
 }
   if (activePage !== 'Dashboard') {
-      const selected = navItems.find((item) => item.name === activePage)
+    
+    const selected = navItems.find((item) => item.name === activePage)
 
       return (
         <div className="coming-soon">
